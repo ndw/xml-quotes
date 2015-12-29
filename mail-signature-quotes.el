@@ -1,4 +1,4 @@
-;;; mail-signature-quotes.el -- format quotations for mail signatures
+;;; mail-signature-quotes.el --- format quotations for mail signatures
 
 ;; Copyright (C) 2002,2015 Norman Walsh
 
@@ -27,7 +27,7 @@
 ;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
-;;
+
 ;; This code formats mail signature blocks with quotations.
 ;;
 ;; Prerequisites:
@@ -54,14 +54,14 @@
 ;;
 ;; (xmlq-add-mail-signature)
 ;;
-;; Formats the signature block returned by (default-signature) with a
+;; Formats the signature block returned by (xmlq-default-signature) with a
 ;; quotation and adds it to the bottom of the current buffer. If an
 ;; existing signature block is already present, it'll be stripped away
 ;; first.
 ;;
 ;; (xmlq-add-mail-signature 4)
 ;;
-;; Formats the signature block returned by (default-signature) with
+;; Formats the signature block returned by (xmlq-default-signature) with
 ;; quotation number 4 and adds it to the bottom of the current buffer.
 ;; If an existing signature block is already present, it'll be
 ;; stripped away first.
@@ -373,3 +373,4 @@
 ;; ======================================================================
 
 (provide 'mail-signature-quotes);
+;;; mail-signature-quotes ends here

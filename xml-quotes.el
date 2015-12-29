@@ -1,4 +1,4 @@
-;;; xml-quotes.el -- read quotations from an XML document
+;;; xml-quotes.el --- read quotations from an XML document
 
 ;; Copyright (C) 2002,2015 Norman Walsh
 
@@ -159,7 +159,6 @@
                 0
               (+ qnum 1))))
     (setq quote (nth qnum xmlq--quotes))
-    (message (if quote "NOT NIL" "NILL"))
     (setq attrib (xmlq-quote-attribution quote))
     (if (string= attrib "")
 	(list qnum (xmlq-quote-text quote))
@@ -170,3 +169,4 @@
   (xml-get-attribute quote 'by))
 
 (provide 'xml-quotes)
+;;; xml-quotes ends here
