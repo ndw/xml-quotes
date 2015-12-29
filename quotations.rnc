@@ -2,11 +2,9 @@
 
 quotations = element quotations { attlist.quotations, quote+ }
 attlist.quotations &= empty
-quote = element quote { attlist.quote, (text | em)* }
+quote = element quote { attlist.quote, text }
 attlist.quote &=
   attribute by { text }?,
   attribute date { text }?,
   attribute source { text }?
-em = element em { attlist.em, text }
-attlist.em &= empty
 start = quotations
