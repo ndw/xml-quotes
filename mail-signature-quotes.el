@@ -293,7 +293,7 @@
 
 (defun xmlq--increment-quote-number (qnum)
   "Increment quote number, but wrap around when we reach the end"
-  (if (>= qnum (quote-count))
+  (if (>= qnum (xmlq-quote-count))
       0
     (+ qnum 1)))
 
