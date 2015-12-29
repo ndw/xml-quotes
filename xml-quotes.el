@@ -169,4 +169,4 @@
   (xml-get-attribute quote 'by))
 
 (provide 'xml-quotes)
-;;; xml-quotes ends here
+;;; xml-quotes.el ends here
