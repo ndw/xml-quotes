@@ -5,8 +5,8 @@
 ;; Author: Norman Walsh <ndw@nwalsh.com>
 ;; URL: https://github.com/ndw/xml-quotes
 ;; Created: 2001-06-06
-;; Last-Update: 2015-12-29
-;; Version: 1.2
+;; Last-Update: 2015-12-30
+;; Version: 1.3
 ;; Keywords: xml quotations
 
 ;; This file is NOT part of GNU emacs.
@@ -53,25 +53,24 @@
 ;;
 ;; Usage:
 ;;
-;; (xmlq-quotation)
+;; (xml-quotes-quotation)
 ;;
 ;; Returns the next quotation.
 ;;
-;; (xmlq-quotation n)
+;; (xml-quotes-quotation n)
 ;;
 ;; Returns the n'th quotation. This sets the next quotation to n+1.
 
 ;;; Example:
 ;;
-;; (xmlq-quotation) =>
+;; (xml-quotes-quotation) =>
 ;; '(257 "Many who find the day too long, think life too short.--Charles Caleb Colton")
-
-;;; Customization:
-;;
-;; This version of xml-quotes is not setup to use customization.
 
 ;;; Changes
 ;;
+;; v1.3
+;;   Renamed to xml-quotes- namespace per conventions; added autoloads; changed
+;;   defvars into defcustoms.
 ;; v1.2
 ;;   Turns out 1.1 was pretty seriously broken. I fixed that. And I renamed all
 ;;   of the functions and variables to be in the xmlq- namespace.
@@ -84,36 +83,39 @@
 
 (require 'xml)
 
-(defvar xmlq-quote-number 0
-  "Quotations are stored in a list. The xmlq-quote-number identifies the next quotation that will be returned.")
+(defcustom xml-quotes-quote-file "~/.quotes.xml"
+  "The name of the file that stores the quotations"
+  :type 'string
+  :group 'xml-quotes)
 
-(defvar xmlq-quote-file "~/.quotes.xml"
-  "The name of the file that stores the quotations")
-
-(defvar xmlq--quotes nil
+(defvar xml-quotes--quotes nil
   "The quotations data structure.")
 
-(defun xmlq--load-quotes-file ()
-  "Load the quotes file into the xmlq--quotes data structure."
-  (let* ((xmlq-quotations (xml-parse-file xmlq-quote-file nil))
-	 (children (xml-node-children (car xmlq-quotations))))
+(defvar xml-quotes--quote-number 0
+  "Quotations are stored in a list. The xml-quotes--quote-number identifies the next quotation that will be returned.")
+
+(defun xml-quotes--load-quotes-file ()
+  "Load the quotes file into the xml-quotes--quotes data structure."
+  (let* ((xml-quotes-quotations (xml-parse-file xml-quotes-quote-file nil))
+	 (children (xml-node-children (car xml-quotes-quotations))))
     (while children
       (if (and (not (stringp (car children)))
 	       (string= (xml-node-name (car children)) "quote"))
-	  (setq xmlq--quotes (append xmlq--quotes (list (car children)))))
+	  (setq xml-quotes--quotes (append xml-quotes--quotes (list (car children)))))
       (setq children (cdr children)))
-    xmlq--quotes))
+    xml-quotes--quotes))
 
-(defun xmlq-quote-count ()
+;;;###autoload
+(defun xml-quotes-quote-count ()
   "Return the total number of quotations."
-  (if (not xmlq--quotes)
-      (xmlq--load-quotes-file))
-  (length xmlq--quotes))
+  (if (not xml-quotes--quotes)
+      (xml-quotes--load-quotes-file))
+  (length xml-quotes--quotes))
 
-(defun xmlq-quote-text (quote)
+(defun xml-quotes-quote-text (quote)
   "Return the text of the specified quote."
   (let* ((text (car (cddr quote)))
-	 (by   (xmlq-quote-attribution (car (xml-get-children quote 'attribution)))))
+	 (by   (xml-quotes-quote-attribution (car (xml-get-children quote 'attribution)))))
     ;; Replace all tabs and newlines in text with spaces; squash multiple spaces.
     ;; there's gotta be a better way...
     (let ((count 0))
@@ -138,33 +140,34 @@
 		    (substring text (match-end 0)))))
       text)))
 
-(defun xmlq-quotation (&optional num-or-random)
+;;;###autoload
+(defun xml-quotes-quotation (&optional num-or-random)
   "Return a quotation, with attribution.  If num-or-random is a number, return that quotation.  If it is t, return a random quotation.  Otherwise return the current quotation."
   (let ((quote nil)
-	(qnum xmlq-quote-number)
+	(qnum xml-quotes--quote-number)
 	(attrib nil))
-    (if (not xmlq--quotes)
-	(xmlq--load-quotes-file))
+    (if (not xml-quotes--quotes)
+	(xml-quotes--load-quotes-file))
     (if num-or-random
 	(if (numberp num-or-random)
 	    (if (or (< num-or-random 0)
-		    (>= num-or-random (xmlq-quote-count)))
+		    (>= num-or-random (xml-quotes-quote-count)))
 		(setq qnum 0)
 	      (setq qnum num-or-random))
 	  (progn
 	    (random t)
-	    (setq qnum (random (xmlq-quote-count)))))
-      (setq xmlq-quote-number
-            (if (>= qnum (1- (xmlq-quote-count)))
+	    (setq qnum (random (xml-quotes-quote-count)))))
+      (setq xml-quotes--quote-number
+            (if (>= qnum (1- (xml-quotes-quote-count)))
                 0
               (+ qnum 1))))
-    (setq quote (nth qnum xmlq--quotes))
-    (setq attrib (xmlq-quote-attribution quote))
+    (setq quote (nth qnum xml-quotes--quotes))
+    (setq attrib (xml-quotes-quote-attribution quote))
     (if (string= attrib "")
-	(list qnum (xmlq-quote-text quote))
-      (list qnum (concat (xmlq-quote-text quote) "--" attrib)))))
+	(list qnum (xml-quotes-quote-text quote))
+      (list qnum (concat (xml-quotes-quote-text quote) "--" attrib)))))
 
-(defun xmlq-quote-attribution (quote)
+(defun xml-quotes-quote-attribution (quote)
   "Return the attribution of the specified quote."
   (xml-get-attribute quote 'by))
 

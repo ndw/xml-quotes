@@ -5,8 +5,8 @@
 ;; Author: Norman Walsh <ndw@nwalsh.com>
 ;; URL: https://github.com/ndw/xml-quotes
 ;; Created: 2001-06-06
-;; Last-Update: 2015-12-29
-;; Version: 1.2
+;; Last-Update: 2015-12-30
+;; Version: 1.3
 ;; Keywords: mail signature quotations
 
 ;; This file is NOT part of GNU emacs.
@@ -42,38 +42,37 @@
 ;;
 ;; Usage:
 ;;
-;; (xmlq-mail-signature "filename")
+;; (xml-quotes-mail-signature "filename")
 ;;
 ;; Formats the signature block in "filename" with a quotation and
 ;; returns it.
 ;;
-;; (xmlq-mail-signature "filename" 4)
+;; (xml-quotes-mail-signature "filename" 4)
 ;;
 ;; Formats the signature block in "filename" with quotation number 4
 ;; and returns it.
 ;;
-;; (xmlq-add-mail-signature)
+;; (xml-quotes-add-mail-signature)
 ;;
-;; Formats the signature block returned by (xmlq-default-signature) with a
+;; Formats the signature block returned by (xml-quotes-default-signature) with a
 ;; quotation and adds it to the bottom of the current buffer. If an
 ;; existing signature block is already present, it'll be stripped away
 ;; first.
 ;;
-;; (xmlq-add-mail-signature 4)
+;; (xml-quotes-add-mail-signature 4)
 ;;
-;; Formats the signature block returned by (xmlq-default-signature) with
+;; Formats the signature block returned by (xml-quotes-default-signature) with
 ;; quotation number 4 and adds it to the bottom of the current buffer.
 ;; If an existing signature block is already present, it'll be
 ;; stripped away first.
 
-;;; Customization:
-;;
-;; This version of mail-signature-quotes is not setup to use customization.
-
 ;;; Changes
 ;;
+;; v1.3
+;;   Renamed to xml-quotes- namespace per conventions; added autoloads; changed
+;;   defvars into defcustoms.
 ;; v1.2
-;;   Renamed all of the functions and variables to be in the xmlq- namespace.
+;;   Renamed all of the functions and variables to be in the xml-quotes- namespace.
 ;; v1.1
 ;;   A bit of cleanup
 ;; v1.0
@@ -83,28 +82,37 @@
 
 (require 'xml-quotes)
 
-(defvar xmlq-message-signature-file "~/.signature"
-  "The default signature file")
+(defcustom xml-quotes-message-signature-file "~/.signature"
+  "The default signature file"
+  :type 'string
+  :group 'xml-quotes)
 
-(defvar xmlq-closing-name "John Doe"
-  "The name to be used in the closing")
+(defcustom xml-quotes-closing-name "John Doe"
+  "The name to be used in the closing"
+  :type 'string
+  :group 'xml-quotes)
 
-(defvar xmlq-closing-text-alist '(("my-spouse@example.com" "Love,")
-                                  ("a-friend@example.com"
-                                   ("Chau," "Ciao," "Cheers," "Later,"
-                                    "Au revoir," "A bientot,"))
-                                  ("#default" "Be seeing you,"))
-  "An a list of closings")
+(defcustom xml-quotes-closing-text-alist '(("my-spouse@example.com" "Love,")
+                                           ("a-friend@example.com"
+                                            ("Chau," "Ciao," "Cheers," "Later,"
+                                             "Au revoir," "A bientot,"))
+                                           ("#default" "Be seeing you,"))
+  "An a list of closings"
+  :type '(alist :key-type 'string
+                :value-type '(list 'string))
+  :group 'xml-quotes)
 
-(defvar xmlq-group-no-closing '()
-  "These Gnus groups get no closing")
+(defcustom xml-quotes-group-no-closing '()
+  "These Gnus groups get no closing"
+  :type '(list 'string)
+  :group 'xml-quotes)
 
 ;; ================================================================================
 
-(defvar xmlq-default-signature-function 'xmlq-generic-default-signature
+(defvar xml-quotes-default-signature-function 'xml-quotes-generic-default-signature
   "What function should be called to generate a signature")
 
-(defun xmlq-gnus-default-signature ()
+(defun xml-quotes-gnus-default-signature ()
   "This function uses Gnus gnus-posting-styles to get the mail signature"
   (interactive)
   (let* ((default-sig "default")
@@ -124,30 +132,31 @@
 	(cadr signature)
       (format "~/.signatures/%s" default-sig))))
 
-(defun xmlq-generic-default-signature ()
-  "This function just returns xmlq-message-signature-file"
-  xmlq-message-signature-file)
+(defun xml-quotes-generic-default-signature ()
+  "This function just returns xml-quotes-message-signature-file"
+  xml-quotes-message-signature-file)
 
-(defun xmlq-default-signature ()
-  (funcall xmlq-default-signature-function))
+(defun xml-quotes-default-signature ()
+  (funcall xml-quotes-default-signature-function))
 
 ;; ================================================================================
 
-(defvar xmlq-signature-override-function 'xmlq-nil-signature-override
+(defvar xml-quotes-signature-override-function 'xml-quotes-nil-signature-override
   "What function should be called to override a quotation")
 
-(defun xmlq-nil-signature-override (email quote)
+(defun xml-quotes-nil-signature-override (email quote)
   nil)
 
 ;; ================================================================================
 
-(defun xmlq-add-mail-signature (&optional quotenum)
+;;;###autoload
+(defun xml-quotes-add-mail-signature (&optional quotenum)
   "Inserts my signature and a mail quote"
   (interactive "P")
-  (let* ((sigfile (xmlq-default-signature)))
-    (xmlq-insert-mail-signature sigfile quotenum)))
+  (let* ((sigfile (xml-quotes-default-signature)))
+    (xml-quotes-insert-mail-signature sigfile quotenum)))
 
-(defun xmlq-insert-mail-signature (sigfile &optional quotenum)
+(defun xml-quotes-insert-mail-signature (sigfile &optional quotenum)
   "Inserts sigfile with a random mail quote"
   (let* ((sigregexp (concat "\n-- ")))
     (save-excursion
@@ -161,43 +170,44 @@
 	    (goto-char (point-max))
 	    (delete-region (mark) (point))))
       (goto-char (point-max))
-      (insert (xmlq-mail-signature sigfile quotenum)))))
+      (insert (xml-quotes-mail-signature sigfile quotenum)))))
 
 ;; ================================================================================
 
-(defun xmlq-gnus-insert-closing-hook ()
+(defun xml-quotes-gnus-insert-closing-hook ()
   "Closing hook for Gnus to insert the message closing"
   (let* ((group-name (if gnus-newsgroup-name
 			 gnus-newsgroup-name
 		       ""))
 	 ;; don't downcase nil
-	 (primary    (if (xmlq--mail-to-primary)
-			 (downcase (xmlq--mail-to-primary))
+	 (primary    (if (xml-quotes--mail-to-primary)
+			 (downcase (xml-quotes--mail-to-primary))
 		       ""))
-	 (closing-text-data (if (assoc primary xmlq-closing-text-alist)
+	 (closing-text-data (if (assoc primary xml-quotes-closing-text-alist)
 				(car (cdr
-				      (assoc primary xmlq-closing-text-alist)))
+				      (assoc primary xml-quotes-closing-text-alist)))
 			      (car (cdr
 				    (assoc "#default"
-					   xmlq-closing-text-alist)))))
+					   xml-quotes-closing-text-alist)))))
 	 (closing-text (if (listp closing-text-data)
 			   (nth (random (length closing-text-data))
 				closing-text-data)
 			 closing-text-data)))
-    (if (not (member group-name xmlq-group-no-closing))
+    (if (not (member group-name xml-quotes-group-no-closing))
 	(progn
 	  (goto-char (point-max))
 	  (newline)
 	  (insert (concat (make-string 40 ? ) closing-text "\n"))
-	  (insert (concat (make-string 42 ? ) xmlq-closing-name))))))
+	  (insert (concat (make-string 42 ? ) xml-quotes-closing-name))))))
 
 ;; ================================================================================
 
-(defun xmlq-mail-signature (sigfile &optional quotenum)
+;;;###autoload
+(defun xml-quotes-mail-signature (sigfile &optional quotenum)
   "Returns a formatted mail signature"
-  (xmlq-formatted-signature sigfile (xmlq-signature-quote quotenum)))
+  (xml-quotes-formatted-signature sigfile (xml-quotes-signature-quote quotenum)))
 
-(defun xmlq-formatted-signature (sig-file quote &optional line-length pad-lines)
+(defun xml-quotes-formatted-signature (sig-file quote &optional line-length pad-lines)
   "Signatures come in two forms: block style which have a vertical line of | characters and line style which do not. Based on the specified signature, format the quotation correctly."
   (let ((scratch-buf (generate-new-buffer "*signature*"))
 	(this-buf (current-buffer))
@@ -209,14 +219,14 @@
     (setq block-sig (search-backward "|" nil t nil))
     (end-of-line)
     (setq lines (if block-sig
-		    (xmlq-block-formatted-signature sig-file quote line-length pad-lines)
-		  (xmlq-line-formatted-signature sig-file quote line-length pad-lines)))
+		    (xml-quotes-block-formatted-signature sig-file quote line-length pad-lines)
+		  (xml-quotes-line-formatted-signature sig-file quote line-length pad-lines)))
     (set-buffer-modified-p nil)
     (set-buffer this-buf)
     (kill-buffer scratch-buf)
     lines))
 
-(defun xmlq-block-formatted-signature (sig-file quote &optional line-length pad-lines)
+(defun xml-quotes-block-formatted-signature (sig-file quote &optional line-length pad-lines)
   "Format a quotation as a block, to the right of the |'s"
   (let ((lines ())
 	(width 40)
@@ -227,7 +237,7 @@
 
     (setq sig-width (current-column))
     (setq width (- fill-width sig-width))
-    (setq lines (xmlq--string-wrap quote width))
+    (setq lines (xml-quotes--string-wrap quote width))
     (while lines
       (if (< (current-column) sig-width)
 	  (progn
@@ -250,12 +260,12 @@
     ;; Return the quotation
     lines))
 
-(defun xmlq-line-formatted-signature (sig-file quote &optional line-length pad-lines)
+(defun xml-quotes-line-formatted-signature (sig-file quote &optional line-length pad-lines)
   "Format a quotation as a block, below the quotation, extending across the page"
   (let ((lines ())
 	(width 72))
     (newline)
-    (setq lines (xmlq--string-wrap quote width))
+    (setq lines (xml-quotes--string-wrap quote width))
     (while lines
       (insert "* ");
       (insert (car lines))
@@ -271,11 +281,11 @@
 
 ;; ================================================================================
 
-(defvar xmlq-signature-quote-number t)
+(defvar xml-quotes-signature-quote-number t)
 
-(defun xmlq-next-signature-quote (emailaddr)
-  "Return the next signature quote number for this person, if they appear in my bbdb. Otherwise return xmlq-signature-quote-number and increment it"
-   (let ((qnum (random (xmlq-quote-count))))
+(defun xml-quotes-next-signature-quote (emailaddr)
+  "Return the next signature quote number for this person, if they appear in my bbdb. Otherwise return xml-quotes-signature-quote-number and increment it"
+   (let ((qnum (random (xml-quotes-quote-count))))
      ;; don't bbdb-search if emailaddr is nil
      (if (and emailaddr (fboundp 'bbdb-message-search))
 	 (let ((rec (car (bbdb-message-search nil emailaddr))))
@@ -286,28 +296,28 @@
 				 (bbdb-record-get-field rec 'last-email-quote))
 			      1))
 		 (bbdb-record-set-field rec 'last-email-quote (number-to-string
-							     (xmlq--increment-quote-number qnum))))
-	     (if (numberp xmlq-signature-quote-number)
-		 (setq qnum (xmlq--increment-quote-number xmlq-signature-quote-number))))))
-     (setq xmlq-signature-quote-number qnum)))
+							     (xml-quotes--increment-quote-number qnum))))
+	     (if (numberp xml-quotes-signature-quote-number)
+		 (setq qnum (xml-quotes--increment-quote-number xml-quotes-signature-quote-number))))))
+     (setq xml-quotes-signature-quote-number qnum)))
 
-(defun xmlq--increment-quote-number (qnum)
+(defun xml-quotes--increment-quote-number (qnum)
   "Increment quote number, but wrap around when we reach the end"
-  (if (>= qnum (xmlq-quote-count))
+  (if (>= qnum (xml-quotes-quote-count))
       0
     (+ qnum 1)))
 
-(defun xmlq-set-signature-quote (&optional prefixarg)
+(defun xml-quotes-set-signature-quote (&optional prefixarg)
   (interactive "P")
   (if prefixarg
       (if (numberp prefixarg)
-	  (setq xmlq-signature-quote-number prefixarg)
-	(setq xmlq-signature-quote-number t)))
-  (if (numberp xmlq-signature-quote-number)
-      (message "Next signature quote is #%d" xmlq-signature-quote-number)
+	  (setq xml-quotes-signature-quote-number prefixarg)
+	(setq xml-quotes-signature-quote-number t)))
+  (if (numberp xml-quotes-signature-quote-number)
+      (message "Next signature quote is #%d" xml-quotes-signature-quote-number)
     (message "Next signature quote is random")))
 
-(defun xmlq--mail-to-primary ()
+(defun xml-quotes--mail-to-primary ()
   "Return the email address of the primary recipient. On a reply, this is the From: field of the original message, otherwise it's the first person on the To: field of this message"
   (if (and (boundp 'gnus-article-reply) gnus-article-reply)
       (save-excursion
@@ -325,17 +335,17 @@
 	      "#default")))
       "#default")))
 
-(defun xmlq-signature-quote (&optional explicit-quote-num)
-  (let* ((emailaddr (xmlq--mail-to-primary))
+(defun xml-quotes-signature-quote (&optional explicit-quote-num)
+  (let* ((emailaddr (xml-quotes--mail-to-primary))
 	 (quote-num (if explicit-quote-num
 			explicit-quote-num
-		      (xmlq-next-signature-quote emailaddr)))
+		      (xml-quotes-next-signature-quote emailaddr)))
 	 quote-list quote)
-    (setq quote-list (xmlq-quotation quote-num))
+    (setq quote-list (xml-quotes-quotation quote-num))
     (setq quote-num (car quote-list))
 
-    (if (boundp 'xmlq-signature-override-function)
-	(setq quote (funcall xmlq-signature-override-function emailaddr (cadr quote-list))))
+    (if (boundp 'xml-quotes-signature-override-function)
+	(setq quote (funcall xml-quotes-signature-override-function emailaddr (cadr quote-list))))
 
     (if quote
 	(message (format "Using override quotation for %s" emailaddr))
@@ -347,7 +357,7 @@
 
 ;; ======================================================================
 
-(defun xmlq--string-wrap (string &optional width)
+(defun xml-quotes--string-wrap (string &optional width)
   "Wrap string into a lines of width no larger than width."
   (let ((line-list ())
 	(line "")
